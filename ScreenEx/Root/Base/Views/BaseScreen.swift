@@ -10,9 +10,10 @@ import SwiftUI
 struct BaseScreen: View {
     
     @State private var goToTheNextScreen: Bool = false
+    @EnvironmentObject private var viewModel: BaseViewModel
     
     var body: some View {
-       
+        
         ZStack {
             //задний фон
             Color.appColor.backgroundAppColor
@@ -21,7 +22,18 @@ struct BaseScreen: View {
             //слой контента
             VStack {
                 baseScreenHeader
-           
+                
+                columnsTitles
+                
+                if !goToTheNextScreen {
+                    exchangeCoinList
+                        .transition(.move(edge: .leading))
+                }
+                if goToTheNextScreen {
+                    porfolioCoinList
+                        .transition(.move(edge: .trailing))
+                }
+                
                 Spacer(minLength: 0)
             }
         }
@@ -33,6 +45,7 @@ struct BaseScreen: View {
         BaseScreen()
             .toolbar(.hidden)
     }
+    .environmentObject(BaseViewModel())
 }
 
 extension BaseScreen {
@@ -57,6 +70,41 @@ extension BaseScreen {
                     }
                 }
         }
+        .padding(.horizontal)
+    }
+    
+    private var exchangeCoinList: some View {
+        List {
+            ForEach(viewModel.exchangeCoin) { coin in
+                CoinCell(coin: coin, showHoldings: false)
+                    .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+            }
+        }
+        .listStyle(.plain)
+    }
+    
+    private var porfolioCoinList: some View {
+        List {
+            ForEach(viewModel.porfolioCoin) { coin in
+                CoinCell(coin: coin, showHoldings: true)
+                    .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+            }
+        }
+        .listStyle(.plain)
+    }
+    
+    private var columnsTitles: some View {
+        HStack {
+            Text("Ticker")
+            Spacer()
+            if goToTheNextScreen {
+                Text("Holdings")
+            }
+            Text("Price")
+                .frame(width: UIScreen.main.bounds.width / 3.5, alignment: .trailing)
+        }
+        .font(.caption)
+        .foregroundStyle(Color.appColor.secondaryTextColor)
         .padding(.horizontal)
     }
 }
