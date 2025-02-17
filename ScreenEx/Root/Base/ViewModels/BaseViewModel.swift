@@ -6,16 +6,28 @@
 //
 
 import Foundation
+import Combine
 
 class BaseViewModel: ObservableObject {
     
     @Published var exchangeCoin: [ExchangeModel] = []
     @Published var porfolioCoin: [ExchangeModel] = []
     
+    private let dataService = MarketDataService()
+    var cancellables = Set<AnyCancellable>()
+    
     init() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.exchangeCoin.append(DeveloperPreview.shared.coin)
-            self.porfolioCoin.append(DeveloperPreview.shared.coin)
-        }
+        addSubscribers()
+    }
+    
+    func addSubscribers() {
+        
+        dataService.$exchangeCoins
+            .sink { [weak self] returnedCoins in
+                self?.exchangeCoin = returnedCoins
+            }
+            .store(in: &cancellables)
     }
 }
+
+
