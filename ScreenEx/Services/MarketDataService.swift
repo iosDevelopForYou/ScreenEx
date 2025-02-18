@@ -51,30 +51,11 @@ class MarketDataService {
               "x-cg-demo-api-key": "CG-AYEGNnmyAEXbUiv5fitneLqw"
             ]
         
-        coinSubscription = URLSession.shared.dataTaskPublisher(for: request)
-            .subscribe(on: DispatchQueue.global(qos: .utility))
-            .tryMap { output -> Data in
-                
-                guard let response = output.response as? HTTPURLResponse,
-                      response.statusCode >= 200 && response.statusCode < 300 else {
-                    throw URLError(.badServerResponse)
-                }
-                return output.data
-            }
+        coinSubscription = NetworkManager.downLoad(request: request)
             .decode(type: [ExchangeModel].self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                switch completion {
-                case .finished:
-                    break
-                case .failure(let error):
-                    print("Ошибка - \(error.localizedDescription)")
-                }
-            } receiveValue: { [weak self] returnedCoins in
+            .sink(receiveCompletion: NetworkManager.handleCompletion, receiveValue: { [weak self] returnedCoins in
                 self?.exchangeCoins = returnedCoins
                 self?.coinSubscription?.cancel()
-            }
-
-
+            })
     }
 }
