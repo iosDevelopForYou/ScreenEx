@@ -23,6 +23,8 @@ struct BaseScreen: View {
             VStack {
                 baseScreenHeader
                 
+                SearchBar(searchText: $viewModel.searchText)
+                
                 columnsTitles
                 
                 if !goToTheNextScreen {
