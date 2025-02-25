@@ -18,10 +18,12 @@ struct BaseScreen: View {
             //задний фон
             Color.appColor.backgroundAppColor
                 .ignoresSafeArea()
-            
+          
             //слой контента
             VStack {
                 baseScreenHeader
+          
+                BaseStatView(showNextScreen: $goToTheNextScreen)
                 
                 SearchBar(searchText: $viewModel.searchText)
                 

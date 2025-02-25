@@ -10,6 +10,13 @@ import Combine
 
 class BaseViewModel: ObservableObject {
     
+    @Published var statArray: [StatisticModel] = [
+        StatisticModel(title: "Title", value: "Value", percentageChange: 5),
+        StatisticModel(title: "Title", value: "Value"),
+        StatisticModel(title: "Title", value: "Value"),
+        StatisticModel(title: "Title", value: "Value", percentageChange: -17),
+    ]
+    
     @Published var exchangeCoin: [ExchangeModel] = []
     @Published var porfolioCoin: [ExchangeModel] = []
     
