@@ -19,6 +19,8 @@ class BaseViewModel: ObservableObject {
     
     private let globalDataServise = GlobalDataService()
     
+    private let portfolioDataService = PortfolioDataService()
+    
     var cancellables = Set<AnyCancellable>()
     
     @Published var searchText: String = ""
@@ -29,6 +31,7 @@ class BaseViewModel: ObservableObject {
     
     func addSubscribers() {
         
+        //update exchangeCoin
         $searchText
             .combineLatest(exchangeDataService.$exchangeCoins)
             .map { text, startingCoins -> [ExchangeModel] in
@@ -51,6 +54,7 @@ class BaseViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // update statArray
         globalDataServise.$marketData
             .map { globalData -> [StatisticModel] in
                 
@@ -77,6 +81,27 @@ class BaseViewModel: ObservableObject {
                 self?.statArray = returnedStats
             }
             .store(in: &cancellables)
+        
+        // update portfolioCoins
+        $exchangeCoin
+            .combineLatest(portfolioDataService.$savedEntities)
+            .map { coinModels, portfolioEntities -> [ExchangeModel] in
+                
+                coinModels.compactMap { coin -> ExchangeModel? in
+                    guard let entity = portfolioEntities.first(where: { $0.coinID == coin.id }) else {
+                        return nil
+                    }
+                    return coin.updateHoldings(amount: entity.amount)
+                }
+            }
+            .sink { [weak self] returnedCoins in
+                self?.porfolioCoin = returnedCoins
+            }
+            .store(in: &cancellables)
+    }
+    
+    func updatePortfoilio(coin: ExchangeModel, amount: Double) {
+        portfolioDataService.updatePortfolio(coin: coin, amount: amount)
     }
 }
 
