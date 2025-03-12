@@ -116,6 +116,16 @@ extension BaseScreen {
             }
             Text("Price")
                 .frame(width: UIScreen.main.bounds.width / 3.5, alignment: .trailing)
+            
+            Button {
+                withAnimation(.linear(duration: 2)) {
+                    viewModel.reloadData()
+                }
+            } label: {
+                Image(systemName: "arrow.trianglehead.2.counterclockwise")
+            }
+            .rotationEffect(Angle(degrees: viewModel.isLoading ? 360 : 0), anchor: .center)
+
         }
         .font(.caption)
         .foregroundStyle(Color.appColor.secondaryTextColor)

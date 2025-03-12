@@ -25,6 +25,8 @@ class BaseViewModel: ObservableObject {
     
     @Published var searchText: String = ""
     
+    @Published var isLoading: Bool = false
+    
     init() {
         addSubscribers()
     }
@@ -54,34 +56,6 @@ class BaseViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // update statArray
-        globalDataServise.$marketData
-            .map { globalData -> [StatisticModel] in
-                
-                var stats: [StatisticModel] = []
-                
-                guard let data = globalData else {
-                    return stats
-                }
-                
-                let marketCap = StatisticModel(title: "MarketCap", value: data.marketCap, percentageChange: data.marketCapChangePercentage24HUsd)
-                let volume = StatisticModel(title: "24h Volume", value: data.volume)
-                let btcDominance = StatisticModel(title: "BTC Dominance", value: data.btcDominance)
-                let portfolio = StatisticModel(title: "Portfolio Value", value: "0.00", percentageChange: 0)
-                
-                stats.append(contentsOf: [
-                    marketCap,
-                    volume,
-                    btcDominance,
-                    portfolio
-                ])
-                return stats
-            }
-            .sink { [weak self] returnedStats in
-                self?.statArray = returnedStats
-            }
-            .store(in: &cancellables)
-        
         // update portfolioCoins
         $exchangeCoin
             .combineLatest(portfolioDataService.$savedEntities)
@@ -98,10 +72,75 @@ class BaseViewModel: ObservableObject {
                 self?.porfolioCoin = returnedCoins
             }
             .store(in: &cancellables)
+        
+        // update statArray
+        globalDataServise.$marketData
+            .combineLatest($porfolioCoin)
+            .map { globalData, portfolioCoin -> [StatisticModel] in
+                
+                var stats: [StatisticModel] = []
+                
+                guard let data = globalData else {
+                    return stats
+                }
+                
+                let marketCap = StatisticModel(title: "MarketCap", value: data.marketCap, percentageChange: data.marketCapChangePercentage24HUsd)
+                let volume = StatisticModel(title: "24h Volume", value: data.volume)
+                let btcDominance = StatisticModel(title: "BTC Dominance", value: data.btcDominance)
+                
+                let portfolioValue =
+                portfolioCoin
+                    .map({ $0.currentHoldingsValue })
+                    .reduce(0, +)
+                
+                let previousValues =
+                portfolioCoin
+                    .map { coin -> Double in
+                        // Текущее значение монеты
+                        let currentValue = coin.currentHoldingsValue
+                        
+                        // Процентное изменение цены за последние 24 часа
+                        let percentChange = (coin.priceChangePercentage24H ?? 0) / 100
+                        
+                        // Вычисление предыдущего значения
+                        let previousValue = currentValue / (1 + percentChange)
+                        return previousValue
+                    }
+                    .reduce(0, +)
+                
+                let percentageChange = ((portfolioValue - previousValues) / previousValues) * 100
+                
+                let portfolio = StatisticModel(
+                    title: "Portfolio Value",
+                    value: portfolioValue.asCyrruncyWith2decimals(),
+                    percentageChange: percentageChange)
+                
+                stats.append(contentsOf: [
+                    marketCap,
+                    volume,
+                    btcDominance,
+                    portfolio
+                ])
+                return stats
+            }
+            .sink { [weak self] returnedStats in
+                self?.statArray = returnedStats
+                self?.isLoading = false
+            }
+            .store(in: &cancellables)
+        
+     
     }
     
     func updatePortfoilio(coin: ExchangeModel, amount: Double) {
         portfolioDataService.updatePortfolio(coin: coin, amount: amount)
+    }
+    
+    func reloadData() {
+        isLoading = true
+        exchangeDataService.getMarketData()
+        globalDataServise.getGlobalData()
+        VibroManager.notification(type: .success)
     }
 }
 

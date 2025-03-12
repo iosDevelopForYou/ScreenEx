@@ -52,6 +52,9 @@ extension Double {
         return fromNumberToString() + "%"
     }
     
+    func asCyrruncyWith2decimals() -> String {
+       return fromNumberToString() + "$"
+    }
     
     /// Convert a Double to a String with K, M, Bn, Tr abbreviations.
     /// ```
