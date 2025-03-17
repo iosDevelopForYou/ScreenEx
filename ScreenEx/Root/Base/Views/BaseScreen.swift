@@ -109,13 +109,55 @@ extension BaseScreen {
     
     private var columnsTitles: some View {
         HStack {
-            Text("Ticker")
+            HStack {
+                Text("Ticker")
+                Image(systemName: "chevron.down")
+                    .opacity((viewModel.sortOption == .rank || viewModel.sortOption == .rankReversed) ? 1 : 0)
+                    .rotationEffect(Angle(degrees: viewModel.sortOption == .rank ? 0 : 180))
+            }
+            .onTapGesture {
+                withAnimation(.default) {
+                    if viewModel.sortOption == .rank {
+                        viewModel.sortOption = .rankReversed
+                    } else {
+                        viewModel.sortOption = .rank
+                    }
+                }
+            }
             Spacer()
             if goToTheNextScreen {
-                Text("Holdings")
+                HStack {
+                    Text("Holdings")
+                    Image(systemName: "chevron.down")
+                        .opacity((viewModel.sortOption == .holdings || viewModel.sortOption == .holdingsReversed) ? 1 : 0)
+                        .rotationEffect(Angle(degrees: viewModel.sortOption == .holdings ? 0 : 180))
+                }
+                .onTapGesture {
+                    withAnimation(.default) {
+                        if viewModel.sortOption == .holdings {
+                            viewModel.sortOption = .holdingsReversed
+                        } else {
+                            viewModel.sortOption = .holdings
+                        }
+                    }
+                }
             }
-            Text("Price")
+            HStack {
+                Text("Price")
+                Image(systemName: "chevron.down")
+                    .opacity((viewModel.sortOption == .price || viewModel.sortOption == .priceReversed) ? 1 : 0)
+                    .rotationEffect(Angle(degrees: viewModel.sortOption == .price ? 0 : 180))
+            }
                 .frame(width: UIScreen.main.bounds.width / 3.5, alignment: .trailing)
+                .onTapGesture {
+                    withAnimation(.default) {
+                        if viewModel.sortOption == .price {
+                            viewModel.sortOption = .priceReversed
+                        } else {
+                            viewModel.sortOption = .price
+                        }
+                    }
+                }
             
             Button {
                 withAnimation(.linear(duration: 2)) {

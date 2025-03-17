@@ -11,21 +11,21 @@ import Combine
 class BaseViewModel: ObservableObject {
     
     @Published var statArray: [StatisticModel] = []
-    
     @Published var exchangeCoin: [ExchangeModel] = []
     @Published var porfolioCoin: [ExchangeModel] = []
+    @Published var searchText: String = ""
+    @Published var isLoading: Bool = false
+    @Published var sortOption: SortOptions = .holdings
     
     private let exchangeDataService = MarketDataService()
-    
     private let globalDataServise = GlobalDataService()
-    
     private let portfolioDataService = PortfolioDataService()
     
     var cancellables = Set<AnyCancellable>()
     
-    @Published var searchText: String = ""
-    
-    @Published var isLoading: Bool = false
+    enum SortOptions {
+        case rank, rankReversed, holdings, holdingsReversed, price, priceReversed
+    }
     
     init() {
         addSubscribers()
@@ -35,21 +35,42 @@ class BaseViewModel: ObservableObject {
         
         //update exchangeCoin
         $searchText
-            .combineLatest(exchangeDataService.$exchangeCoins)
-            .map { text, startingCoins -> [ExchangeModel] in
+            .combineLatest(exchangeDataService.$exchangeCoins, $sortOption)
+            .map { text, startingCoins, sortOption -> [ExchangeModel] in
                 
                 guard !text.isEmpty else {
-                    return startingCoins
+                    switch sortOption {
+                    case .rank, .holdings:
+                        return startingCoins.sorted(by: {$0.rank < $1.rank})
+                    case .rankReversed, .holdingsReversed:
+                        return startingCoins.sorted(by: {$0.rank > $1.rank})
+                    case .price:
+                        return startingCoins.sorted(by: {$0.currentPrice > $1.currentPrice})
+                    case .priceReversed:
+                        return startingCoins.sorted(by: {$0.currentPrice < $1.currentPrice})
+                    }
                 }
                 
                 let lowercasedText = text.lowercased()
                 
+                // фильтрация массива на основе текстфилда
                 let filteredCoins = startingCoins.filter { coin -> Bool in
                     return coin.name.lowercased().contains(lowercasedText) ||
                            coin.symbol.lowercased().contains(lowercasedText) ||
                            coin.id.lowercased().contains(lowercasedText)
                 }
-                return filteredCoins
+                
+                // фильтрация на основе сортировочных опций
+                switch sortOption {
+                case .rank, .holdings:
+                    return filteredCoins.sorted(by: {$0.rank < $1.rank})
+                case .rankReversed, .holdingsReversed:
+                    return filteredCoins.sorted(by: {$0.rank > $1.rank})
+                case .price:
+                    return filteredCoins.sorted(by: {$0.currentPrice > $1.currentPrice})
+                case .priceReversed:
+                    return filteredCoins.sorted(by: {$0.currentPrice < $1.currentPrice})
+                }
             }
             .sink { [weak self] returnedCoins in
                 self?.exchangeCoin = returnedCoins
@@ -69,7 +90,8 @@ class BaseViewModel: ObservableObject {
                 }
             }
             .sink { [weak self] returnedCoins in
-                self?.porfolioCoin = returnedCoins
+                guard let self = self else { return }
+                self.porfolioCoin = self.sortPorfolioCoin(coin: returnedCoins)
             }
             .store(in: &cancellables)
         
@@ -141,6 +163,18 @@ class BaseViewModel: ObservableObject {
         exchangeDataService.getMarketData()
         globalDataServise.getGlobalData()
         VibroManager.notification(type: .success)
+    }
+    
+    private func sortPorfolioCoin(coin: [ExchangeModel]) -> [ExchangeModel] {
+        
+        switch sortOption {
+        case .holdings:
+            return coin.sorted(by: {$0.currentHoldingsValue > $1.currentHoldingsValue })
+        case .holdingsReversed:
+            return coin.sorted(by: {$0.currentHoldingsValue < $1.currentHoldingsValue })
+        default:
+            return coin
+        }
     }
 }
 
