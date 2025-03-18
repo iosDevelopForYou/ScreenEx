@@ -14,6 +14,9 @@ struct BaseScreen: View {
     
     @EnvironmentObject private var viewModel: BaseViewModel
     
+    @State private var selectedCoin: ExchangeModel? = nil
+    @State private var showDetailScreen: Bool = false
+    
     var body: some View {
         
         ZStack {
@@ -46,6 +49,14 @@ struct BaseScreen: View {
                 Spacer(minLength: 0)
             }
         }
+        .background(
+            NavigationLink(
+                destination: DetailLoadingScreen(coin: $selectedCoin),
+                isActive: $showDetailScreen,
+                label: {
+                    EmptyView()
+                })
+        )
     }
 }
 
@@ -90,8 +101,11 @@ extension BaseScreen {
     private var exchangeCoinList: some View {
         List {
             ForEach(viewModel.exchangeCoin) { coin in
-                CoinCell(coin: coin, showHoldings: false)
-                    .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+                    CoinCell(coin: coin, showHoldings: false)
+                        .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+                        .onTapGesture {
+                            goToDetailScreen(coin: coin)
+                        }
             }
         }
         .listStyle(.plain)
@@ -102,9 +116,17 @@ extension BaseScreen {
             ForEach(viewModel.porfolioCoin) { coin in
                 CoinCell(coin: coin, showHoldings: true)
                     .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+                    .onTapGesture {
+                        goToDetailScreen(coin: coin)
+                    }
             }
         }
         .listStyle(.plain)
+    }
+    
+    private func goToDetailScreen(coin: ExchangeModel) {
+        selectedCoin = coin
+        showDetailScreen.toggle()
     }
     
     private var columnsTitles: some View {

@@ -22,6 +22,9 @@ struct CoinCell: View {
             rightColumn
         }
         .font(.subheadline)
+        .background(
+            Color.appColor.backgroundAppColor.opacity(0.001)
+        )
     }
 }
 
