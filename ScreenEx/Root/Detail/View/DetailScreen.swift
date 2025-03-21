@@ -23,20 +23,87 @@ struct DetailLoadingScreen: View {
 
 struct DetailScreen: View {
     
-    @StateObject var viewModel: DetailViewModel 
+    @StateObject private var viewModel: DetailViewModel
+    
+    private let columns: [GridItem] = [
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+    
+    private let spacing: CGFloat = 30
     
     init(coin: ExchangeModel) {
         _viewModel = StateObject(wrappedValue: DetailViewModel(coin: coin))
-        print("инициализируем детайлскрин для \(coin.name)")
+      
     }
     
     var body: some View {
-        
-        Text("привет")
-        
+        ScrollView {
+            VStack(spacing: 20) {
+                Text("")
+                    .frame(height: 150)
+                
+                overviewTitle
+                Divider()
+                
+                overviewGrid
+                
+                detailsTitle
+                Divider()
+                
+                detailsGrid
+              
+            }
+            .padding()
+        }
+        .navigationTitle(viewModel.coin.name)
     }
 }
 
 #Preview {
-    DetailScreen(coin: DeveloperPreview.shared.coin)
+    NavigationStack {
+        DetailScreen(coin: DeveloperPreview.shared.coin)
+    }
+}
+
+extension DetailScreen {
+    private var overviewTitle: some View {
+        Text("Overview")
+            .font(.title)
+            .bold()
+            .foregroundStyle(Color.appColor.accentAppColor)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var overviewGrid: some View {
+        LazyVGrid(
+            columns: columns,
+            alignment: .leading,
+            spacing: spacing,
+            pinnedViews: []) {
+                ForEach(viewModel.overviewStatistics) { stat in
+                    StatisticComponent(statistic: stat)
+                }
+            }
+    }
+    
+    private var detailsTitle: some View {
+        Text("Details")
+            .font(.title)
+            .bold()
+            .foregroundStyle(Color.appColor.accentAppColor)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var detailsGrid: some View {
+        LazyVGrid(
+            columns: columns,
+            alignment: .leading,
+            spacing: spacing,
+            pinnedViews: []) {
+                ForEach(viewModel.additionalStatistics) { stat in
+                    StatisticComponent(statistic: stat)
+                }
+            }
+    }
 }
