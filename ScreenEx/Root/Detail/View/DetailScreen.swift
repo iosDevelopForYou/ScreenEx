@@ -39,24 +39,37 @@ struct DetailScreen: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Text("")
-                    .frame(height: 150)
+            VStack {
+                ChartView(coin: viewModel.coin)
+                    .padding(.vertical)
                 
-                overviewTitle
-                Divider()
-                
-                overviewGrid
-                
-                detailsTitle
-                Divider()
-                
-                detailsGrid
-              
+                VStack(spacing: 20) {
+                    overviewTitle
+                    Divider()
+                    
+                    overviewGrid
+                    
+                    detailsTitle
+                    Divider()
+                    
+                    detailsGrid
+                  
+                }
+                .padding()
             }
-            .padding()
         }
         .navigationTitle(viewModel.coin.name)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack {
+                    Text(viewModel.coin.symbol.uppercased())
+                        .font(.headline)
+                        .foregroundStyle(Color.appColor.secondaryTextColor)
+                    CoinImage(coin: viewModel.coin)
+                        .frame(width: 30, height: 30)
+                }
+            }
+        }
     }
 }
 
