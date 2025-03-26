@@ -25,6 +25,8 @@ struct DetailScreen: View {
     
     @StateObject private var viewModel: DetailViewModel
     
+    @State var showDescription: Bool = false
+    
     private let columns: [GridItem] = [
         GridItem(.flexible()),
         GridItem(.flexible())
@@ -46,14 +48,12 @@ struct DetailScreen: View {
                 VStack(spacing: 20) {
                     overviewTitle
                     Divider()
-                    
+                    description
                     overviewGrid
-                    
                     detailsTitle
                     Divider()
-                    
                     detailsGrid
-                  
+                    links
                 }
                 .padding()
             }
@@ -88,6 +88,33 @@ extension DetailScreen {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
+    private var description: some View {
+        ZStack {
+            if let coinDescription = viewModel.coinDescription, !coinDescription.isEmpty {
+                VStack(alignment: .leading) {
+                    Text(coinDescription)
+                        .lineLimit(showDescription ? nil : 3)
+                        .font(.callout)
+                        .foregroundStyle(Color.appColor.secondaryTextColor)
+                    
+                    Button {
+                        withAnimation(.easeInOut) {
+                            showDescription.toggle()
+                        }
+                    } label: {
+                        Text(showDescription ? "Hide" : "Read more...")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .padding(.vertical, 6)
+                            .foregroundStyle(Color.blue)
+                    }
+
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+    
     private var overviewGrid: some View {
         LazyVGrid(
             columns: columns,
@@ -118,5 +145,22 @@ extension DetailScreen {
                     StatisticComponent(statistic: stat)
                 }
             }
+    }
+    
+    private var links: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            
+            if let webSiteString = viewModel.websiteURL, let url = URL(string: webSiteString) {
+                Link("Website", destination: url)
+            }
+            
+            if let redditString = viewModel.redditURL, let url = URL(string: redditString) {
+                Link("Reddit", destination: url)
+            }
+            
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .font(.headline)
+        .foregroundStyle(Color.blue)
     }
 }
