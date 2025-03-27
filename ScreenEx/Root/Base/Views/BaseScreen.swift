@@ -17,6 +17,8 @@ struct BaseScreen: View {
     @State private var selectedCoin: ExchangeModel? = nil
     @State private var showDetailScreen: Bool = false
     
+    @State private var showInfoScreen: Bool = false
+    
     var body: some View {
         
         ZStack {
@@ -48,6 +50,9 @@ struct BaseScreen: View {
                 
                 Spacer(minLength: 0)
             }
+            .sheet(isPresented: $showInfoScreen) {
+                InfoScreen()
+            }
         }
         .background(
             NavigationLink(
@@ -73,6 +78,7 @@ extension BaseScreen {
         HStack {
             CustomButton(iconName: goToTheNextScreen ? "plus.viewfinder" : "info.square.fill")
                 .onTapGesture {
+                    showInfoScreen.toggle()
                     if goToTheNextScreen {
                         showPortfolioScreen.toggle()
                     }
