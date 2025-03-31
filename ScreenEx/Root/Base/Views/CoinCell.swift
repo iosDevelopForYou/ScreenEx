@@ -57,6 +57,7 @@ extension CoinCell {
         .foregroundStyle(Color.appColor.accentAppColor)
     }
     
+    
     private var rightColumn: some View {
         VStack(alignment: .trailing) {
             Text(coin.currentPrice.asCurrencyWith6FractionDigits())
@@ -70,5 +71,6 @@ extension CoinCell {
                 )
         }
         .frame(width: UIScreen.main.bounds.width / 3.5, alignment: .trailing)
+        
     }
 }

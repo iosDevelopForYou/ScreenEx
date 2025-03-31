@@ -32,6 +32,7 @@ struct SearchBar: View {
                             searchText = ""
                         }
                     
+                    
                     , alignment: .trailing
                 )
         }

@@ -20,6 +20,7 @@
 
 import Foundation
 
+
 struct MarketDataModel: Codable {
     let data: GlobalData?
 }
