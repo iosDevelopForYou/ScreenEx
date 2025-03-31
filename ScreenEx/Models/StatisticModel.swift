@@ -21,3 +21,8 @@ struct StatisticModel: Identifiable {
 }
 
 
+//struct AppModel {
+//    let id = UUID()
+//    let title: String
+//    let value: String
+//}

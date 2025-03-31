@@ -86,6 +86,7 @@ extension BaseScreen {
                 .background(
                     CustomButtonAnimation(animate: $goToTheNextScreen)
                 )
+            
             Spacer()
             Text(goToTheNextScreen ? "Portfolio" : "Exchange")
                 .font(.headline)
